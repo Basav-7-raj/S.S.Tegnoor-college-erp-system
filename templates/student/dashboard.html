@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Student Home{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block content %}
+
+<!-- Welcome Banner -->
+<div class="card-modern mb-4 animate-fade-in" style="background:linear-gradient(135deg, var(--maroon), var(--maroon-dark)); border:none;">
+  <div class="card-body-modern" style="color:#fff;">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.15); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:700;">
+            {{ info.name[0]|upper }}
+          </div>
+          <div>
+            <div style="font-size:12px; font-weight:600; opacity:0.7; text-transform:uppercase; letter-spacing:0.08em;">Welcome back</div>
+            <h3 style="font-weight:800; margin:0; font-size:24px;">{{ info.name }}</h3>
+            <div style="opacity:0.8; font-size:14px; font-weight:500;">{{ info.roll_no }} · {{ info.course }} · Sem {{ info.current_sem }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div style="background:rgba(255,255,255,0.1); border-radius:12px; padding:16px; display:inline-block;">
+          <div style="font-size:11px; font-weight:600; opacity:0.7; text-transform:uppercase;">Current Semester</div>
+          <div style="font-size:32px; font-weight:800; line-height:1;">{{ info.current_sem }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 animate-fade-in">
+    <div class="stat-card">
+      <div class="ico-wrap navy"><i class="bi bi-pencil-square"></i></div>
+      <div class="val" style="color:var(--info);">{{ n_marks }}</div>
+      <div class="lbl">Subjects This Sem</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-1">
+    <div class="stat-card">
+      <div class="ico-wrap {% if att_pct >= 75 %}green{% else %}maroon{% endif %}">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+      <div class="val" style="color:{% if att_pct >= 75 %}var(--success){% else %}var(--danger){% endif %};">{{ att_pct }}%</div>
+      <div class="lbl">Attendance</div>
+      {% if att_pct >= 75 %}
+        <div class="trend up"><i class="bi bi-check-circle-fill"></i>Good standing</div>
+      {% elif att_pct > 0 %}
+        <div class="trend down"><i class="bi bi-exclamation-circle-fill"></i>Below 75%</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-2">
+    <div class="stat-card">
+      <div class="ico-wrap orange"><i class="bi bi-bar-chart"></i></div>
+      <div class="val" style="color:var(--accent);">{{ avg }}%</div>
+      <div class="lbl">Semester Average</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 animate-fade-in animate-delay-3">
+    <div class="stat-card">
+      <div class="ico-wrap maroon"><i class="bi bi-mortarboard"></i></div>
+      <div class="val" style="color:var(--maroon);">{{ info.current_sem }}</div>
+      <div class="lbl">Current Semester</div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Warning -->
+{% if att_pct < 75 and att_pct > 0 %}
+<div class="alert alert-modern alert-warning mb-4" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <strong>Attendance Alert:</strong> Your attendance is {{ att_pct }}%. Minimum 75% required for eligibility.
+</div>
+{% endif %}
+
+<!-- Recent Marks -->
+{% if recent_marks %}
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-clock-history"></i>Recent Marks</h5>
+    <a href="{{ url_for('student_marks') }}" class="btn btn-sm btn-outline-maroon">View All</a>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead style="background:var(--bg-hover);">
+          <tr>
+            <th style="padding:10px 14px; font-size:11px;">Subject</th>
+            <th style="padding:10px 14px; font-size:11px;">Exam</th>
+            <th style="padding:10px 14px; font-size:11px; text-align:center;">Score</th>
+            <th style="padding:10px 14px; font-size:11px; text-align:center;">Sem</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in recent_marks %}
+          {% set pct = ((m.marks_obtained/m.total_marks)*100)|round(1) if m.total_marks else 0 %}
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 14px; font-weight:600;">{{ m.subject }}</td>
+            <td style="padding:10px 14px;"><small style="color:var(--text-secondary);">{{ m.exam_type }}</small></td>
+            <td style="padding:10px 14px; text-align:center; font-weight:700; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ m.marks_obtained }}/{{ m.total_marks }}</td>
+            <td style="padding:10px 14px; text-align:center;"><span class="badge-modern badge-sem">{{ m.semester }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Semester Performance -->
+{% if sem_summary %}
+<div class="card-modern mb-4 animate-fade-in animate-delay-1">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-graph-up"></i>Semester-wise Performance</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-3">
+      {% for s in sem_summary %}
+      {% set pct = s.avg | float %}
+      <div class="col-4 col-md-2">
+        <div class="text-center p-3 rounded" style="background:{% if pct>=75 %}#ECFDF5{% elif pct>=50 %}#FFFBEB{% else %}#FEF2F2{% endif %}; border:1px solid {% if pct>=75 %}#A7F3D0{% elif pct>=50 %}#FDE68A{% else %}#FECACA{% endif %};">
+          <div style="font-size:24px; font-weight:800; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ s.avg }}%</div>
+          <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-top:4px;">Sem {{ s.semester }}</div>
+          <div style="font-size:11px; color:var(--text-muted);">{{ s.subjects }} subjects</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Attendance Trend -->
+{% if att_trend %}
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-calendar-check"></i>Attendance Trend</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-2">
+      {% for a in att_trend %}
+      {% set pct = ((a.present/a.total)*100)|round|int if a.total else 0 %}
+      <div class="col-md-2 col-4">
+        <div class="text-center">
+          <div style="font-size:20px; font-weight:800; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ pct }}%</div>
+          <div class="att-bar mb-1" style="height:6px;">
+            <div class="att-fill" style="width:{{ pct }}%; height:6px; background:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted); font-weight:600;">Sem {{ a.semester }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Current Subjects -->
+{% if subjects %}
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-book"></i>Current Semester Subjects</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-2">
+      {% for s in subjects %}
+      <div class="col-md-4 col-lg-3">
+        <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--bg-hover); border:1px solid var(--border);">
+          <i class="bi bi-journal-text" style="color:var(--maroon); font-size:14px;"></i>
+          <span style="font-size:13px; font-weight:600; color:var(--text-primary);">{{ s }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick Links -->
+<div class="row g-3 animate-fade-in">
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('student_marks') }}" class="card-modern text-decoration-none d-block text-center p-4" style="transition:all 0.3s;">
+      <i class="bi bi-bar-chart-fill" style="font-size:32px; color:var(--maroon);"></i>
+      <div style="font-weight:700; color:var(--text-primary); margin-top:8px;">My Marks</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('student_attendance') }}" class="card-modern text-decoration-none d-block text-center p-4" style="transition:all 0.3s;">
+      <i class="bi bi-calendar-check-fill" style="font-size:32px; color:var(--success);"></i>
+      <div style="font-weight:700; color:var(--text-primary); margin-top:8px;">Attendance</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('student_progress') }}" class="card-modern text-decoration-none d-block text-center p-4" style="transition:all 0.3s;">
+      <i class="bi bi-graph-up-arrow" style="font-size:32px; color:var(--accent);"></i>
+      <div style="font-weight:700; color:var(--text-primary); margin-top:8px;">Progress</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('student_materials') }}" class="card-modern text-decoration-none d-block text-center p-4" style="transition:all 0.3s;">
+      <i class="bi bi-folder-fill" style="font-size:32px; color:var(--info);"></i>
+      <div style="font-weight:700; color:var(--text-primary); margin-top:8px;">Materials</div>
+    </a>
+  </div>
+</div>
+{% endblock %}

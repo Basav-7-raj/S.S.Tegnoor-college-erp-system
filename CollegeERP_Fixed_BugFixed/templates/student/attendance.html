@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
+{% block content %}
+
+<!-- Semester Selector -->
+<div class="d-flex gap-2 mb-4 flex-wrap align-items-center animate-fade-in">
+  <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em;">Semester:</span>
+  {% for n in sems %}
+  <a href="?sem={{ n }}" class="btn btn-sm {% if fsem==n %}btn-maroon{% else %}btn-outline-secondary{% endif %}">Sem {{ n }}</a>
+  {% endfor %}
+</div>
+
+{% if not rows %}
+<div class="alert alert-modern alert-info mb-4" role="alert">
+  <i class="bi bi-info-circle-fill"></i>
+  No attendance recorded for Semester {{ fsem }} yet.
+</div>
+{% endif %}
+
+<!-- Monthly Breakdown -->
+{% if monthly %}
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-calendar-month"></i>Monthly Attendance Breakdown</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-2">
+      {% for m in monthly %}
+      {% set pct = ((m.present/m.total)*100)|round|int if m.total else 0 %}
+      <div class="col-md-3 col-6">
+        <div class="p-3 rounded text-center" style="background:{% if pct>=75 %}#ECFDF5{% elif pct>=50 %}#FFFBEB{% else %}#FEF2F2{% endif %}; border:1px solid {% if pct>=75 %}#A7F3D0{% elif pct>=50 %}#FDE68A{% else %}#FECACA{% endif %};">
+          <div style="font-size:11px; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">{{ m.month }}</div>
+          <div style="font-size:24px; font-weight:800; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %}; line-height:1; margin-top:4px;">{{ pct }}%</div>
+          <div style="font-size:11px; color:var(--text-muted);">{{ m.present }}/{{ m.total }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Subject Attendance Cards -->
+<div class="row g-3">
+  {% for r in rows %}
+  {% set pct = ((r.present/r.total)*100)|round|int if r.total else 0 %}
+  <div class="col-md-6 animate-fade-in" style="animation-delay: {{ loop.index * 0.05 }}s;">
+    <div class="card-modern">
+      <div class="card-body-modern">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h6 style="font-weight:700; color:var(--text-primary); margin:0; font-size:15px;">{{ r.subject }}</h6>
+            <small style="color:var(--text-muted); font-weight:500;">Semester {{ fsem }}</small>
+          </div>
+          <span style="font-size:20px; font-weight:800; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">
+            {{ pct }}%
+          </span>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2" style="font-size:13px; color:var(--text-secondary); font-weight:500;">
+          <span>{{ r.present }} Present</span>
+          <span>{{ r.total - r.present }} Absent</span>
+        </div>
+
+        <div class="att-bar mb-2">
+          <div class="att-fill" style="width:{{ pct }}%; background:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+        </div>
+
+        {% if pct < 75 %}
+        <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--danger); margin-top:8px;">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          Below 75% threshold — attend more classes!
+        </div>
+        {% elif pct >= 90 %}
+        <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--success); margin-top:8px;">
+          <i class="bi bi-check-circle-fill"></i>
+          Excellent attendance!
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Materials{% endblock %}
+{% block page_title %}Study Materials{% endblock %}
+{% block content %}
+
+<!-- Filter Bar -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-body-modern">
+    <form method="GET" class="d-flex gap-2 flex-wrap align-items-end">
+      <div style="flex:1; min-width:200px;">
+        <label class="form-label-modern">Search</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0" style="border-color:var(--border);"><i class="bi bi-search" style="color:var(--text-muted);"></i></span>
+          <input class="form-control border-start-0" name="q" placeholder="Search title or subject..." value="{{ q }}" style="border-color:var(--border);">
+        </div>
+      </div>
+      <div style="width:180px;">
+        <label class="form-label-modern">Type</label>
+        <select class="form-control-modern" name="type" style="padding-left:10px;">
+          <option value="All">All Types</option>
+          <option {% if ft=='Study Material' %}selected{% endif %}>Study Material</option>
+          <option {% if ft=='Question Paper' %}selected{% endif %}>Question Paper</option>
+          <option {% if ft=='Assignment' %}selected{% endif %}>Assignment</option>
+          <option {% if ft=='Notes' %}selected{% endif %}>Notes</option>
+          <option {% if ft=='Other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div style="width:150px;">
+        <label class="form-label-modern">Internal Exams</label>
+        <select class="form-control-modern" name="internal" style="padding-left:10px;">
+          <option value="All">All</option>
+          <option value="1" {% if fi=='1' %}selected{% endif %}>Internal Only</option>
+          <option value="0" {% if fi=='0' %}selected{% endif %}>Regular Only</option>
+        </select>
+      </div>
+      <button class="btn btn-maroon" style="margin-bottom:0;"><i class="bi bi-funnel me-1"></i>Filter</button>
+      {% if q or ft != 'All' or fi != 'All' %}
+      <a href="{{ url_for('student_materials') }}" class="btn btn-outline-secondary" style="margin-bottom:0;">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Materials Grid -->
+<div class="row g-3">
+  {% for m in materials %}
+  <div class="col-md-6 col-lg-4 animate-fade-in" style="animation-delay: {{ loop.index * 0.05 }}s;">
+    <div class="card-modern h-100">
+      <div class="card-body-modern">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="badge-modern" style="background:{% if m.material_type=='Study Material' %}#ECFDF5{% elif m.material_type=='Question Paper' %}#FEF2F2{% elif m.material_type=='Assignment' %}#FFFBEB{% else %}#EFF6FF{% endif %}; color:{% if m.material_type=='Study Material' %}var(--success){% elif m.material_type=='Question Paper' %}var(--danger){% elif m.material_type=='Assignment' %}var(--warning){% else %}var(--info){% endif %};">
+              {{ m.material_type }}
+            </span>
+            {% if m.is_internal %}
+            <span class="badge-modern" style="background:var(--warning); color:#fff; margin-left:4px;">Internal</span>
+            {% endif %}
+          </div>
+          {% if m.file_path %}
+          <a href="{{ url_for('static', filename=m.file_path) }}" class="btn btn-sm btn-maroon" target="_blank">
+            <i class="bi bi-download me-1"></i>Download
+          </a>
+          {% endif %}
+        </div>
+
+        <h6 style="font-weight:700; color:var(--text-primary); font-size:15px; margin-bottom:8px;">{{ m.title }}</h6>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:12px; line-height:1.5;">{{ m.description or '' }}</p>
+
+        <div class="d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border); padding-top:12px; margin-top:auto;">
+          <small style="color:var(--text-muted); font-weight:500;"><i class="bi bi-book me-1"></i>{{ m.subject or '—' }}</small>
+          <small style="color:var(--text-muted); font-weight:500;"><i class="bi bi-calendar me-1"></i>{{ m.upload_date }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 animate-fade-in">
+    <div class="empty-state">
+      <i class="bi bi-folder"></i>
+      <p>No materials found matching your search.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

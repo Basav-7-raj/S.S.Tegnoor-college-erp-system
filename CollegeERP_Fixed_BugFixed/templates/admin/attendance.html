@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+{% block page_title %}Manage Students{% endblock %}
+{% block content %}
+
+<!-- Add Student Card -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-person-plus"></i>Add New Student</h5>
+    <button class="btn btn-sm btn-outline-maroon" data-bs-toggle="collapse" data-bs-target="#importBox">
+      <i class="bi bi-file-earmark-arrow-up me-1"></i>Import CSV
+    </button>
+  </div>
+  <div class="card-body-modern">
+    <form method="POST">
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label-modern">Roll No *</label>
+          <input class="form-control-modern" name="roll_no" placeholder="e.g. BCA001" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label-modern">Full Name *</label>
+          <input class="form-control-modern" name="name" placeholder="Student name" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Email</label>
+          <input class="form-control-modern" name="email" placeholder="email@example.com" type="email">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Phone</label>
+          <input class="form-control-modern" name="phone" placeholder="Phone number">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Course</label>
+          <select class="form-control-modern" name="course" required style="padding-left:10px;">
+            <option value="">Select</option>
+            {% for c in courses %}<option>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Sem</label>
+          <select class="form-control-modern" name="sem" style="padding-left:10px;">
+            {% for s in range(1,7) %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Section</label>
+          <input class="form-control-modern" name="section" placeholder="A">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Username</label>
+          <input class="form-control-modern" name="uname" placeholder="Login username">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Password</label>
+          <input class="form-control-modern" type="password" name="upass" placeholder="Password">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-maroon">
+            <i class="bi bi-plus-circle me-2"></i>Add Student
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- CSV Import -->
+    <div class="collapse mt-4" id="importBox">
+      <div style="background:var(--bg-hover); border-radius:var(--radius); padding:20px; border:1px dashed var(--border);">
+        <p class="small mb-3" style="color:var(--text-secondary); font-weight:500;">
+          <i class="bi bi-info-circle me-1"></i>CSV columns: <code style="background:#fff; padding:2px 6px; border-radius:4px;">roll_no, name, email, phone, course, sem, section</code>
+        </p>
+        <form method="POST" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap">
+          <input type="hidden" name="action" value="import_csv">
+          <input type="file" name="csvfile" accept=".csv" class="form-control-modern" style="flex:1; min-width:200px; padding-left:14px;" required>
+          <button class="btn btn-maroon"><i class="bi bi-upload me-1"></i>Import</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Students List -->
+<div class="card-modern animate-fade-in animate-delay-1">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-people"></i>All Students <span style="font-size:13px; color:var(--text-muted); font-weight:500;">({{ students|length }} total)</span></h5>
+    <form method="GET" class="d-flex gap-2 flex-wrap">
+      <div class="input-group input-group-sm" style="width:180px;">
+        <span class="input-group-text bg-white border-end-0" style="border-color:var(--border);"><i class="bi bi-search" style="color:var(--text-muted);"></i></span>
+        <input class="form-control border-start-0" name="q" placeholder="Search..." value="{{ q }}" style="border-color:var(--border); font-size:13px;">
+      </div>
+      <select class="form-select form-select-sm" name="course" style="width:110px; border-color:var(--border); font-size:13px;">
+        <option value="All">All Courses</option>
+        {% for c in courses %}<option {% if cf==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+      <select class="form-select form-select-sm" name="sem" style="width:110px; border-color:var(--border); font-size:13px;">
+        <option value="All">All Sems</option>
+        {% for n in sems %}<option value="{{ n }}" {% if sf==n|string %}selected{% endif %}>Sem {{ n }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-sm btn-maroon">Filter</button>
+      {% if q or cf!='All' or sf!='All' %}
+      <a href="{{ url_for('admin_students') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Semester</th>
+            <th>Section</th>
+            <th>Contact</th>
+            <th>Actions</th>
+            <th>Update Sem</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:500;">{{ loop.index }}</td>
+            <td>
+              <span class="badge-modern" style="background:var(--bg-hover); color:var(--text-primary); border:1px solid var(--border);">{{ s.roll_no }}</span>
+            </td>
+            <td style="font-weight:600;">{{ s.name }}</td>
+            <td><span class="badge-modern badge-course">{{ s.course }}</span></td>
+            <td><span class="badge-modern badge-sem">Sem {{ s.current_sem }}</span></td>
+            <td style="color:var(--text-secondary); font-weight:500;">{{ s.section or '—' }}</td>
+            <td>
+              {% if s.email %}<small style="color:var(--text-muted);"><i class="bi bi-envelope me-1"></i>{{ s.email }}</small>{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('admin_student_detail', roll_no=s.roll_no) }}" class="btn btn-sm btn-outline-maroon" title="View Details">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{{ url_for('admin_performance_detail', roll_no=s.roll_no) }}" class="btn btn-sm btn-outline-info" title="Performance">
+                  <i class="bi bi-graph-up"></i>
+                </a>
+              </div>
+            </td>
+            <td>
+              <form method="POST" class="d-flex gap-1 align-items-center">
+                <input type="hidden" name="action" value="update_sem">
+                <input type="hidden" name="sid" value="{{ s.id }}">
+                <select class="form-select form-select-sm" name="sem" style="width:85px; border-color:var(--border); font-size:12px;">
+                  {% for n in range(1,7) %}<option value="{{ n }}" {% if s.current_sem==n %}selected{% endif %}>Sem {{ n }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-sm btn-maroon" style="padding:4px 10px; font-size:12px;" title="Update">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+              </form>
+            </td>
+            <td>
+              <form method="POST" onsubmit="return confirm('Are you sure you want to delete {{ s.name }}?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="sid" value="{{ s.id }}">
+                <button class="btn btn-sm btn-outline-danger" style="padding:4px 8px;" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="10">
+              <div class="empty-state">
+                <i class="bi bi-search"></i>
+                <p>No students found matching your criteria.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

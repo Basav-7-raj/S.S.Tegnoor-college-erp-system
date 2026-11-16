@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}My Marks{% endblock %}
+{% block page_title %}My Marks{% endblock %}
+{% block content %}
+
+<!-- Semester Selector -->
+<div class="d-flex gap-2 mb-4 flex-wrap align-items-center animate-fade-in">
+  <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em;">Semester:</span>
+  {% for n in sems %}
+  <a href="?sem={{ n }}" class="btn btn-sm {% if fsem==n %}btn-maroon{% else %}btn-outline-secondary{% endif %}">
+    Sem {{ n }}
+    {% if n in sems_with_marks %}<span style="width:6px;height:6px;background:var(--success);border-radius:50%;display:inline-block;margin-left:4px;vertical-align:middle;"></span>{% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+{% if marks %}
+<!-- GPA Summary Card -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="stat-card text-center">
+      <div class="ico-wrap maroon"><i class="bi bi-award"></i></div>
+      <div class="val">{{ gpa }}</div>
+      <div class="lbl">Semester GPA</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card text-center">
+      <div class="ico-wrap maroon"><i class="bi bi-journal-check"></i></div>
+      <div class="val">{{ marks|length }}</div>
+      <div class="lbl">Exams Recorded</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card text-center">
+      {% set total_pct = 0 %}
+      {% set count = marks|length %}
+      {% for m in marks %}{% set total_pct = total_pct + ((m.marks_obtained/m.total_marks)*100 if m.total_marks else 0) %}{% endfor %}
+      {% set avg_pct = (total_pct/count)|round(1) if count else 0 %}
+      <div class="ico-wrap maroon"><i class="bi bi-percent"></i></div>
+      <div class="val" style="color:{% if avg_pct>=75 %}var(--success){% elif avg_pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ avg_pct }}%</div>
+      <div class="lbl">Average Score</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card text-center">
+      <div class="ico-wrap maroon"><i class="bi bi-book"></i></div>
+      <div class="val">{{ marks|map(attribute='subject')|list|unique|list|length }}</div>
+      <div class="lbl">Subjects</div>
+    </div>
+  </div>
+</div>
+
+<!-- Marks Table -->
+<div class="card-modern animate-fade-in animate-delay-1">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-pencil-square"></i>Semester {{ fsem }} — Mark Sheet</h5>
+    <span class="badge-modern badge-sem">Sem {{ fsem }}</span>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Subject</th>
+            <th>Exam Type</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Grade</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in marks %}
+          {% set pct = ((m.marks_obtained/m.total_marks)*100)|round(1) if m.total_marks else 0 %}
+          {% set g = grade_fn(pct) %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:500;">{{ loop.index }}</td>
+            <td style="font-weight:600;">{{ m.subject }}</td>
+            <td><small style="color:var(--text-secondary); font-weight:500;">{{ m.exam_type }}</small></td>
+            <td style="font-weight:700;">{{ m.marks_obtained }}/{{ m.total_marks }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="att-bar" style="flex:1; min-width:80px;">
+                  <div class="att-fill" style="width:{{ pct }}%; background:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+                </div>
+                <span style="font-weight:700; font-size:13px; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %}; min-width:42px;">{{ pct }}%</span>
+              </div>
+            </td>
+            <td><span class="grade-badge grade-{{ g|replace('+','p') }}">{{ g }}</span></td>
+            <td><small style="color:var(--text-muted);">{{ m.exam_date or '—' }}</small></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state animate-fade-in">
+  <i class="bi bi-pencil-square"></i>
+  <p>No marks recorded for Semester {{ fsem }} yet.</p>
+  <small style="color:var(--text-muted);">Check other semesters using the buttons above.</small>
+</div>
+{% endif %}
+
+{% endblock %}

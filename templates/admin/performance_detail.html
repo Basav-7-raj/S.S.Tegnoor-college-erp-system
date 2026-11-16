@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Student Performance Detail{% endblock %}
+{% block page_title %}Academic Performance — {{ student.name }}{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+
+<!-- Student Header -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div style="background:linear-gradient(135deg, var(--maroon), var(--maroon-dark)); padding:24px; color:#fff;">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:64px; height:64px; border-radius:50%; background:rgba(255,255,255,0.15); border:3px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700;">
+            {{ student.name[0]|upper }}
+          </div>
+          <div>
+            <h3 style="font-weight:800; margin:0;">{{ student.name }}</h3>
+            <div style="opacity:0.8; font-size:14px;">{{ student.roll_no }} · {{ student.course }} · Sem {{ student.current_sem }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('admin_student_detail', roll_no=student.roll_no) }}" class="btn btn-sm" style="background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.3);">
+          <i class="bi bi-person me-1"></i>Full Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Semester Performance Cards -->
+<div class="row g-3 mb-4">
+  {% for s in sem_data %}
+  <div class="col-md-4 animate-fade-in" style="animation-delay: {{ loop.index * 0.05 }}s;">
+    <div class="card-modern">
+      <div class="card-header-modern">
+        <h5><i class="bi bi-journal-bookmark"></i>Semester {{ s.semester }}</h5>
+        {% if s.semester == student.current_sem %}
+        <span class="badge-modern" style="background:#ECFDF5; color:var(--success);">Current</span>
+        {% endif %}
+      </div>
+      <div class="card-body-modern">
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div style="font-size:28px; font-weight:800; color:{% if s.avg>=75 %}var(--success){% elif s.avg>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ s.avg }}%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">AVERAGE</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:28px; font-weight:800; color:var(--info);">{{ s.gpa }}</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">GPA</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary);">{{ s.subjects }}</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">SUBJECTS</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:20px; font-weight:700; color:{% if s.attendance>=75 %}var(--success){% elif s.attendance>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ s.attendance }}%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600;">ATTENDANCE</div>
+          </div>
+        </div>
+
+        <!-- Subject Breakdown -->
+        <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px;">
+          {% for m in s.marks %}
+          {% set pct = ((m.best_marks/m.total_marks)*100)|round(1) if m.total_marks else 0 %}
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:12px; font-weight:600;">{{ m.subject }}</span>
+            <span style="font-size:12px; font-weight:700; color:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ m.best_marks }}/{{ m.total_marks }}</span>
+          </div>
+          <div class="att-bar mb-2" style="height:4px;">
+            <div class="att-fill" style="width:{{ pct }}%; height:4px; background:{% if pct>=75 %}var(--success){% elif pct>=50 %}var(--warning){% else %}var(--danger){% endif %};"></div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Performance Trend Chart -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-graph-up-arrow"></i>Academic Growth Trend</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-3">
+      <div class="col-md-8">
+        <canvas id="trendChart" style="max-height:300px;"></canvas>
+      </div>
+      <div class="col-md-4">
+        <h6 style="font-weight:700; margin-bottom:12px;">Performance Summary</h6>
+        {% set overall_avg = sem_data|sum(attribute='avg') / sem_data|length if sem_data else 0 %}
+        {% set overall_gpa = sem_data|sum(attribute='gpa') / sem_data|length if sem_data else 0 %}
+        <div class="mb-3 p-3 rounded" style="background:var(--bg-hover);">
+          <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">OVERALL AVERAGE</div>
+          <div style="font-size:24px; font-weight:800; color:{% if overall_avg>=75 %}var(--success){% elif overall_avg>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ "%.1f"|format(overall_avg) }}%</div>
+        </div>
+        <div class="mb-3 p-3 rounded" style="background:var(--bg-hover);">
+          <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">CUMULATIVE GPA</div>
+          <div style="font-size:24px; font-weight:800; color:var(--info);">{{ "%.2f"|format(overall_gpa) }}</div>
+        </div>
+        <div class="p-3 rounded" style="background:var(--bg-hover);">
+          <div style="font-size:12px; color:var(--text-secondary); font-weight:600;">SEMESTERS COMPLETED</div>
+          <div style="font-size:24px; font-weight:800; color:var(--text-primary);">{{ sem_data|length }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const semData = {{ sem_data | tojson }};
+
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: semData.map(s => 'Sem ' + s.semester),
+    datasets: [
+      {
+        label: 'Average %',
+        data: semData.map(s => s.avg),
+        borderColor: '#7B1F1F',
+        backgroundColor: 'rgba(123,31,31,0.08)',
+        pointBackgroundColor: '#7B1F1F',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        tension: 0.4,
+        fill: true,
+        borderWidth: 3,
+        yAxisID: 'y'
+      },
+      {
+        label: 'GPA',
+        data: semData.map(s => s.gpa),
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37,99,235,0.08)',
+        pointBackgroundColor: '#2563EB',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        tension: 0.4,
+        fill: true,
+        borderWidth: 3,
+        yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        min: 0,
+        max: 100,
+        ticks: { callback: v => v + '%' }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        min: 0,
+        max: 10,
+        grid: { drawOnChartArea: false }
+      }
+    },
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            if (ctx.dataset.label === 'Average %') return ctx.parsed.y + '%';
+            return 'GPA: ' + ctx.parsed.y;
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Performance{% endblock %}
+{% block page_title %}Performance Analytics{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+
+<!-- Search Section -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-search"></i>Search Student Performance</h5>
+  </div>
+  <div class="card-body-modern">
+    <form method="GET" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label-modern">Roll No</label>
+        <input class="form-control-modern" name="roll" placeholder="Enter roll number" value="{{ search_roll }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-modern">Student Name</label>
+        <input class="form-control-modern" name="name" placeholder="Enter name" value="{{ search_name }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label-modern">Course</label>
+        <select class="form-control-modern" name="course" style="padding-left:10px;">
+          <option value="">All</option>
+          <option {% if search_course=='BCA' %}selected{% endif %}>BCA</option>
+          <option {% if search_course=='BSC' %}selected{% endif %}>BSC</option>
+          <option {% if search_course=='BCOM' %}selected{% endif %}>BCOM</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-maroon w-100">
+          <i class="bi bi-search me-1"></i>Search
+        </button>
+      </div>
+      <div class="col-md-2">
+        <a href="{{ url_for('admin_performance') }}" class="btn btn-outline-secondary w-100">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Search Results -->
+{% if search_results %}
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-list-check"></i>Search Results ({{ search_results|length }} found)</h5>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Sem</th>
+            <th>Average %</th>
+            <th>Total Marks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in search_results %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:700;">#{{ loop.index }}</td>
+            <td><small style="color:var(--text-muted); font-weight:500;">{{ s.roll_no }}</small></td>
+            <td style="font-weight:600;">{{ s.name or '—' }}</td>
+            <td><span class="badge-modern badge-course">{{ s.course }}</span></td>
+            <td><span class="badge-modern badge-sem">Sem {{ s.current_sem }}</span></td>
+            <td style="font-weight:700; color:{% if s.avg>=75 %}var(--success){% elif s.avg>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ s.avg }}%</td>
+            <td>{{ s.total_marks }}</td>
+            <td>
+              <a href="{{ url_for('admin_performance_detail', roll_no=s.roll_no) }}" class="btn btn-sm btn-maroon">
+                <i class="bi bi-graph-up me-1"></i>View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <!-- Toppers -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-bold" style="color:#6B1A1A;"><i class="bi bi-trophy-fill text-warning me-2"></i>Top 10 Students</div>
+      <div class="card-body p-0">
+        {% for t in toppers %}
+        {% set medals = ['🥇','🥈','🥉'] %}
+        <div class="d-flex align-items-center px-3 py-2 border-bottom">
+          <span style="font-size:20px; width:32px;">{{ medals[loop.index0] if loop.index0 < 3 else '#'+loop.index|string }}</span>
+          <div class="ms-2 flex-grow-1">
+            <div class="fw-semibold">{{ t.name or t.roll_no }}</div>
+            <small class="text-muted">{{ t.course or '' }} · {{ t.roll_no }} · Sem {{ t.current_sem }}</small>
+          </div>
+          <span class="badge {% if t.avg >= 75 %}bg-success{% elif t.avg >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6">{{ t.avg }}%</span>
+        </div>
+        {% else %}
+        <p class="text-center text-muted py-4">No data yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Grade chart -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white fw-bold" style="color:#6B1A1A;"><i class="bi bi-pie-chart-fill me-2"></i>Grade Distribution</div>
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <canvas id="gradeChart" style="max-height:280px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Course Performance -->
+<div class="card-modern mb-4">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-building"></i>Course-wise Performance</h5>
+  </div>
+  <div class="card-body-modern">
+    <div class="row g-3">
+      {% for c in course_perf %}
+      <div class="col-md-4">
+        <div class="text-center p-3 rounded" style="background:{% if c.avg>=75 %}#ECFDF5{% elif c.avg>=50 %}#FFFBEB{% else %}#FEF2F2{% endif %}; border:1px solid {% if c.avg>=75 %}#A7F3D0{% elif c.avg>=50 %}#FDE68A{% else %}#FECACA{% endif %};">
+          <div style="font-size:28px; font-weight:800; color:{% if c.avg>=75 %}var(--success){% elif c.avg>=50 %}var(--warning){% else %}var(--danger){% endif %};">{{ c.avg }}%</div>
+          <div style="font-size:13px; font-weight:700; color:var(--text-secondary); margin-top:4px;">{{ c.course }}</div>
+          <div style="font-size:11px; color:var(--text-muted);">{{ c.students }} students</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Semester-wise Average Chart -->
+<div class="card-modern mb-4">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-graph-up"></i>Semester-wise Average by Course</h5>
+  </div>
+  <div class="card-body-modern">
+    <canvas id="semChart" style="max-height:300px;"></canvas>
+  </div>
+</div>
+
+<!-- Irregular Students -->
+<div class="card-modern mb-4">
+  <div class="card-header-modern" style="background:#FEF2F2;">
+    <h5><i class="bi bi-exclamation-triangle-fill" style="color:var(--danger);"></i>Irregular Students (Below 75% Attendance)</h5>
+    <span class="badge-modern" style="background:var(--danger); color:#fff;">{{ irregular_students|length }} students</span>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table table-sm">
+        <thead>
+          <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Sem</th>
+            <th>Attendance %</th>
+            <th>Present/Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in irregular_students %}
+          <tr>
+            <td><small style="color:var(--text-muted);">{{ s.roll_no }}</small></td>
+            <td style="font-weight:600;">{{ s.name }}</td>
+            <td><span class="badge-modern badge-course">{{ s.course }}</span></td>
+            <td><span class="badge-modern badge-sem">Sem {{ s.current_sem }}</span></td>
+            <td style="font-weight:700; color:var(--danger);">{{ s.pct }}%</td>
+            <td>{{ s.present }} / {{ s.total }}</td>
+            <td>
+              <a href="{{ url_for('admin_student_detail', roll_no=s.roll_no) }}" class="btn btn-sm btn-outline-maroon">View</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <span style="color:var(--success); font-weight:600;"><i class="bi bi-check-circle-fill me-1"></i>All students have good attendance!</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Needs attention -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white fw-bold" style="color:#dc2626;"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Students Needing Attention (Below 75% Marks)</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Roll No</th><th>Name</th><th>Course</th><th>Average %</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+      {% for s in all_avg %}
+      {% if s.avg < 75 %}
+      <tr>
+        <td><small>{{ s.roll_no }}</small></td>
+        <td class="fw-semibold">{{ s.name or s.roll_no }}</td>
+        <td>{{ s.course or '—' }}</td>
+        <td>{{ s.avg }}%</td>
+        <td>
+          {% if s.avg < 40 %}<span class="badge bg-danger">🔴 Critical</span>
+          {% elif s.avg < 60 %}<span class="badge bg-warning text-dark">🟠 Average</span>
+          {% else %}<span class="badge bg-info text-dark">🟡 Borderline</span>{% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('admin_performance_detail', roll_no=s.roll_no) }}" class="btn btn-sm btn-outline-maroon">View</a>
+        </td>
+      </tr>
+      {% endif %}
+      {% else %}
+      <tr><td colspan="6" class="text-center text-success py-3">🎉 All students performing well!</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+// Grade Distribution Chart
+const gd = {{ grade_dist | tojson }};
+const labels = Object.keys(gd);
+const data   = Object.values(gd);
+const colors = ['#16a34a','#2563eb','#7c3aed','#ea580c','#ca8a04','#dc2626','#6B7280'];
+new Chart(document.getElementById('gradeChart'), {
+  type: 'doughnut',
+  data: { labels, datasets:[{ data, backgroundColor: colors, borderWidth: 2 }] },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'right' } }
+  }
+});
+
+// Semester-wise Average Chart
+const semData = {{ sem_avg | tojson }};
+const courses = [...new Set(semData.map(s => s.course))];
+const sems = [1,2,3,4,5,6];
+const datasets = courses.map((course, idx) => {
+  const colors = ['#7B1F1F', '#1E293B', '#D97706'];
+  return {
+    label: course,
+    data: sems.map(sem => {
+      const row = semData.find(s => s.course === course && s.semester === sem);
+      return row ? row.avg : 0;
+    }),
+    backgroundColor: colors[idx],
+    borderColor: colors[idx],
+    borderWidth: 2,
+    tension: 0.4
+  };
+});
+
+new Chart(document.getElementById('semChart'), {
+  type: 'line',
+  data: {
+    labels: sems.map(s => 'Sem ' + s),
+    datasets: datasets
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+</script>
+{% endblock %}

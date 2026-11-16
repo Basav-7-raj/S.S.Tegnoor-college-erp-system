@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Marks{% endblock %}
+{% block page_title %}Marks Entry{% endblock %}
+{% block content %}
+
+<!-- Add Marks Card -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-pencil-square"></i>Add Individual Marks</h5>
+  </div>
+  <div class="card-body-modern">
+    <form method="POST">
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label-modern">Roll No *</label>
+          <input class="form-control-modern" name="roll_no" id="rollInput" placeholder="Roll No" required list="rollList">
+          <datalist id="rollList">{% for s in students %}<option value="{{ s.roll_no }}">{{ s.name }}</option>{% endfor %}</datalist>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Student Info</label>
+          <input class="form-control-modern" id="stuInfo" readonly placeholder="Auto-filled" style="background:var(--bg-hover);">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Subject *</label>
+          <select class="form-control-modern" name="subject" id="subjectSelect" required style="padding-left:10px;">
+            <option value="">Select subject</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Exam Type</label>
+          <select class="form-control-modern" name="exam_type" style="padding-left:10px;">
+            <option>Mid-Term</option>
+            <option>Final</option>
+            <option>Internal</option>
+            <option>Practical</option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Marks</label>
+          <input class="form-control-modern" name="marks" type="number" min="0" placeholder="0" required>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Total</label>
+          <input class="form-control-modern" name="total" type="number" value="100" required>
+        </div>
+        <div class="col-md-1">
+          <label class="form-label-modern">Sem</label>
+          <input class="form-control-modern" name="sem" id="semInput" type="number" min="1" max="6" value="1">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Exam Date</label>
+          <input class="form-control-modern" type="date" name="exam_date" value="{{ today }}">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-maroon">
+            <i class="bi bi-plus-circle me-2"></i>Add Marks
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bulk Marks Entry -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-people-fill"></i>Bulk Marks Entry</h5>
+  </div>
+  <div class="card-body-modern">
+    <form method="GET" class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label-modern">Course</label>
+        <select class="form-control-modern" name="bulk_course" style="padding-left:10px;">
+          <option {% if bulk_course=='BCA' %}selected{% endif %}>BCA</option>
+          <option {% if bulk_course=='BSC' %}selected{% endif %}>BSC</option>
+          <option {% if bulk_course=='BCOM' %}selected{% endif %}>BCOM</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label-modern">Semester</label>
+        <select class="form-control-modern" name="bulk_sem" style="padding-left:10px;">
+          {% for n in range(1,7) %}<option value="{{ n }}" {% if bulk_sem==n|string %}selected{% endif %}>Sem {{ n }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-auto d-flex align-items-end">
+        <button class="btn btn-maroon" name="bulk" value="1">Load Students</button>
+      </div>
+    </form>
+
+    {% if bulk_students %}
+    <form method="POST">
+      <input type="hidden" name="action" value="bulk_add">
+      <!-- Pass bulk_course/sem so the action has context -->
+      <input type="hidden" name="sem" value="{{ bulk_sem }}">
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label-modern">Subject *</label>
+          <select class="form-control-modern" name="subject" required style="padding-left:10px;">
+            <option value="">Select subject</option>
+            {% for s in bulk_subjects %}<option>{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Exam Type</label>
+          <select class="form-control-modern" name="exam_type" style="padding-left:10px;">
+            <option>Mid-Term</option>
+            <option>Final</option>
+            <option>Internal</option>
+            <option>Practical</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Exam Date</label>
+          <input class="form-control-modern" type="date" name="exam_date" value="{{ today }}">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+          <button class="btn btn-maroon"><i class="bi bi-save me-1"></i>Save All Marks</button>
+        </div>
+      </div>
+
+      <div style="max-height:400px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius);">
+        <table class="table table-sm mb-0">
+          <thead style="position:sticky; top:0; background:var(--bg-hover); z-index:1;">
+            <tr>
+              <th style="padding:10px 14px; font-size:11px;">Roll No</th>
+              <th style="padding:10px 14px; font-size:11px;">Name</th>
+              <th style="padding:10px 14px; font-size:11px; text-align:center; width:100px;">Marks</th>
+              <th style="padding:10px 14px; font-size:11px; text-align:center; width:100px;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in bulk_students %}
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:10px 14px;"><small style="color:var(--text-muted); font-weight:500;">{{ s.roll_no }}</small></td>
+              <td style="padding:10px 14px; font-weight:600;">{{ s.name }}</td>
+              <td style="padding:10px 14px;">
+                <input type="hidden" name="roll_nos" value="{{ s.roll_no }}">
+                <input class="form-control-modern" name="marks_{{ s.roll_no }}" type="number" min="0" placeholder="0" style="padding:6px 10px; font-size:13px;">
+              </td>
+              <td style="padding:10px 14px;">
+                <input class="form-control-modern" name="total_{{ s.roll_no }}" type="number" value="100" style="padding:6px 10px; font-size:13px;">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="d-flex gap-2 mb-3 flex-wrap animate-fade-in animate-delay-1">
+  <form method="GET" class="d-flex gap-2 flex-wrap">
+    <div class="input-group input-group-sm" style="width:150px;">
+      <span class="input-group-text bg-white border-end-0" style="border-color:var(--border);"><i class="bi bi-search" style="color:var(--text-muted);"></i></span>
+      <input class="form-control border-start-0" name="roll" placeholder="Roll No" value="{{ froll }}" style="border-color:var(--border); font-size:13px;">
+    </div>
+    <select class="form-select form-select-sm" name="sem" style="width:110px; border-color:var(--border); font-size:13px;">
+      <option value="">All Sems</option>
+      {% for n in range(1,7) %}<option value="{{ n }}" {% if fsem==n|string %}selected{% endif %}>Sem {{ n }}</option>{% endfor %}
+    </select>
+    <select class="form-select form-select-sm" name="course" style="width:120px; border-color:var(--border); font-size:13px;">
+      <option value="">All Courses</option>
+      {% for c in ["BCA","BSC","BCOM"] %}<option {% if fcourse==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-sm btn-maroon">Filter</button>
+    <a href="{{ url_for('admin_marks') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+  </form>
+</div>
+
+<!-- Marks Table -->
+<div class="card-modern animate-fade-in animate-delay-2">
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Sem</th>
+            <th>Subject</th>
+            <th>Exam</th>
+            <th>Score</th>
+            <th>%</th>
+            <th>Grade</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in marks %}
+          {% set pct = ((m.marks_obtained/m.total_marks)*100)|round(1) if m.total_marks else 0 %}
+          {% set g = grade_fn(pct) %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:500;">{{ loop.index }}</td>
+            <td><small style="color:var(--text-muted); font-weight:500;">{{ m.roll_no }}</small></td>
+            <td style="font-weight:600;">{{ m.name or '—' }}</td>
+            <td><span class="badge-modern badge-sem">Sem {{ m.semester }}</span></td>
+            <td style="font-weight:600;">{{ m.subject }}</td>
+            <td><small style="color:var(--text-secondary); font-weight:500;">{{ m.exam_type }}</small></td>
+            <td style="font-weight:700;">{{ m.marks_obtained }}/{{ m.total_marks }}</td>
+            <td style="font-weight:700; color:{% if pct>=60 %}var(--success){% elif pct>=40 %}var(--warning){% else %}var(--danger){% endif %};">{{ pct }}%</td>
+            <td><span class="grade-badge grade-{{ g|replace('+','p') }}">{{ g }}</span></td>
+            <td>
+              <a href="{{ url_for('admin_delete_mark', mid=m.id) }}" class="btn btn-sm btn-outline-danger" style="padding:4px 8px;" title="Delete" onclick="return confirm('Delete this mark entry?')">
+                <i class="bi bi-trash"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="10">
+              <div class="empty-state">
+                <i class="bi bi-pencil-square"></i>
+                <p>No marks records found.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('rollInput').addEventListener('change', function(){
+  const roll = this.value;
+  if(!roll) return;
+  fetch(`/api/student_info?roll=${encodeURIComponent(roll)}`)
+    .then(r=>r.json()).then(data=>{
+      if(data.name){
+        document.getElementById('stuInfo').value = `${data.name} | ${data.course} | Sem ${data.sem}`;
+        document.getElementById('semInput').value = data.sem;
+        const sel = document.getElementById('subjectSelect');
+        sel.innerHTML = '<option value="">Select subject</option>';
+        (data.subjects||[]).forEach(s=>{
+          sel.innerHTML += `<option>${s}</option>`;
+        });
+      }
+    })
+    .catch(()=>{});
+});
+</script>
+{% endblock %}

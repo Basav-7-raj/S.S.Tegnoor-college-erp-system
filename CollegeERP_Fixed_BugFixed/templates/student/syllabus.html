@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Syllabus{% endblock %}
+{% block page_title %}My Syllabus — {{ course }}{% endblock %}
+{% block content %}
+
+{% for sem in range(1,7) %}
+<div class="card-modern mb-3 animate-fade-in" style="animation-delay: {{ sem * 0.05 }}s;">
+  <div class="card-header-modern">
+    <h5>
+      <i class="bi bi-journal-bookmark"></i>Semester {{ sem }}
+      {% if info and info.current_sem == sem %}
+      <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; background:#ECFDF5; color:var(--success); padding:3px 10px; border-radius:20px; margin-left:8px;">
+        <i class="bi bi-check-circle-fill" style="font-size:9px;"></i>Current
+      </span>
+      {% endif %}
+    </h5>
+    <span class="badge-modern badge-sem">{{ subj_by_sem.get(sem,[])|length }} subjects</span>
+  </div>
+  <div class="card-body-modern">
+    <!-- Subjects Grid -->
+    <div class="row g-2 mb-3">
+      {% for s in subj_by_sem.get(sem,[]) %}
+      <div class="col-md-4 col-lg-3">
+        <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--bg-hover); border:1px solid var(--border);">
+          <i class="bi bi-book" style="color:var(--maroon); font-size:14px;"></i>
+          <span style="font-size:13px; font-weight:600; color:var(--text-primary);">{{ s }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <!-- Syllabus PDFs -->
+    {% if by_sem.get(sem) %}
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em;">Syllabus PDFs:</span>
+      <div class="d-flex gap-2 flex-wrap mt-2">
+        {% for f in by_sem[sem] %}
+        <a href="{{ url_for('static',filename=f.file_path) }}" class="btn btn-sm btn-outline-maroon" target="_blank">
+          <i class="bi bi-file-earmark-pdf me-1"></i>{{ f.title }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <p style="color:var(--text-muted); font-size:13px; font-weight:500; margin:0;">
+        <i class="bi bi-info-circle me-1"></i>No PDF uploaded yet for this semester.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

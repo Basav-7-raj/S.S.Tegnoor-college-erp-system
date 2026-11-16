@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Teachers{% endblock %}
+{% block page_title %}Manage Teachers{% endblock %}
+{% block content %}
+
+<!-- Add Teacher Card -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-person-plus"></i>Add New Teacher</h5>
+  </div>
+  <div class="card-body-modern">
+    <form method="POST">
+      <input type="hidden" name="action" value="add">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label-modern">Full Name *</label>
+          <input class="form-control-modern" name="name" placeholder="Teacher name" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-modern">Email</label>
+          <input class="form-control-modern" name="email" placeholder="email@college.edu" type="email">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-modern">Phone</label>
+          <input class="form-control-modern" name="phone" placeholder="Phone number">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-modern">Department</label>
+          <input class="form-control-modern" name="dept" placeholder="e.g. Computer Science">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-modern">Subject</label>
+          <input class="form-control-modern" name="subject" placeholder="Primary subject">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Username</label>
+          <input class="form-control-modern" name="uname" placeholder="Login ID">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Password</label>
+          <input class="form-control-modern" type="password" name="upass" placeholder="Password">
+        </div>
+        <div class="col-12">
+          <button class="btn btn-maroon" type="submit">
+            <i class="bi bi-plus-circle me-2"></i>Add Teacher
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Teachers List -->
+<div class="card-modern animate-fade-in animate-delay-1">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-table"></i>All Teachers <span style="font-size:13px; color:var(--text-muted); font-weight:500;">({{ teachers|length }} total)</span></h5>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Department</th>
+            <th>Subject</th>
+            <th>Login</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in teachers %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:500;">{{ loop.index }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, var(--navy), var(--navy-light)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:700;">{{ t.name[0]|upper }}</div>
+                <span style="font-weight:600;">{{ t.name }}</span>
+              </div>
+            </td>
+            <td>
+              {% if t.email %}<div style="font-size:12px; color:var(--text-muted);"><i class="bi bi-envelope me-1"></i>{{ t.email }}</div>{% endif %}
+              {% if t.phone %}<div style="font-size:12px; color:var(--text-muted);"><i class="bi bi-telephone me-1"></i>{{ t.phone }}</div>{% endif %}
+              {% if not t.email and not t.phone %}<span style="color:var(--text-muted);">—</span>{% endif %}
+            </td>
+            <td style="color:var(--text-secondary); font-weight:500;">{{ t.department or '—' }}</td>
+            <td style="color:var(--text-secondary); font-weight:500;">{{ t.subject or '—' }}</td>
+            <td>
+              {% if t.username %}
+                <span class="badge-modern" style="background:var(--bg-hover); color:var(--text-primary); border:1px solid var(--border);">{{ t.username }}</span>
+              {% else %}
+                <span style="font-size:12px; color:var(--text-muted);">No login</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="POST" onsubmit="return confirm('Delete {{ t.name }}?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="tid" value="{{ t.id }}">
+                <button class="btn btn-sm btn-outline-danger" style="padding:4px 8px;" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <i class="bi bi-person-workspace"></i>
+                <p>No teachers added yet.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login — SS Tegnoor ERP</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon: #7B1F1F;
+    --maroon-dark: #5A1515;
+    --maroon-light: #9E2A2A;
+    --navy: #1E293B;
+    --bg-warm: #FAF7F5;
+    --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg-warm);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* Decorative background elements */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(123,31,31,0.04) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(30,41,59,0.03) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  
+  .login-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 460px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.5s ease;
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* College Header */
+  .college-header {
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding: 28px 24px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .college-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+  
+  .college-header .logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .college-header .logo-wrap {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+  }
+  .college-header .logo-wrap img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+  }
+  .college-header .logo-fallback {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  
+  .college-header .trust {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .college-header .name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    margin-top: 6px;
+    position: relative;
+    letter-spacing: -0.01em;
+  }
+  .college-header .affil {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 6px;
+    position: relative;
+    font-weight: 500;
+  }
+  .college-header .portal-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 14px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.05em;
+  }
+  
+  /* Login Body */
+  .login-body {
+    padding: 32px 28px 28px;
+  }
+  
+  /* Flash Messages */
+  .alert-login {
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert-login.alert-danger { background: #FEF2F2; color: #DC2626; }
+  .alert-login.alert-warning { background: #FFFBEB; color: #D97706; }
+  .alert-login.alert-success { background: #ECFDF5; color: #059669; }
+  
+  /* Role Selector */
+  .role-selector {
+    margin-bottom: 24px;
+  }
+  .role-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .role-options {
+    display: flex;
+    gap: 10px;
+  }
+  .role-btn {
+    flex: 1;
+    border: 2px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #64748B;
+    padding: 12px 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .role-btn:hover {
+    border-color: #CBD5E1;
+    background: #F1F5F9;
+  }
+  .role-btn.active {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(123,31,31,0.2);
+  }
+  .role-btn i { font-size: 16px; }
+  
+  /* Form Fields */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .input-wrap {
+    position: relative;
+  }
+  .input-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 16px;
+    transition: color var(--transition);
+  }
+  .form-control-custom {
+    width: 100%;
+    border: 1.5px solid #E2E8F0;
+    border-radius: var(--radius);
+    padding: 12px 14px 12px 42px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1E293B;
+    transition: all var(--transition);
+    background: #FAFBFC;
+  }
+  .form-control-custom:focus {
+    border-color: var(--maroon);
+    box-shadow: 0 0 0 3px rgba(123,31,31,0.08);
+    outline: none;
+    background: #fff;
+  }
+  .form-control-custom:focus + i,
+  .input-wrap:focus-within i { color: var(--maroon); }
+  
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    transition: color var(--transition);
+  }
+  .password-toggle:hover { color: #64748B; }
+  
+  /* Login Button */
+  .btn-login {
+    background: var(--maroon);
+    color: #fff;
+    width: 100%;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-login:hover {
+    background: var(--maroon-dark);
+    box-shadow: 0 8px 20px rgba(123,31,31,0.3);
+    transform: translateY(-1px);
+  }
+  .btn-login:active { transform: translateY(0); }
+  .btn-login:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Demo Section */
+  .demo-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #F1F5F9;
+  }
+  .demo-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .demo-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .demo-badge {
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid;
+    transition: all var(--transition);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .demo-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .demo-badge.admin {
+    color: var(--maroon);
+    border-color: var(--maroon);
+    background: rgba(123,31,31,0.04);
+  }
+  .demo-badge.admin:hover { background: var(--maroon); color: #fff; }
+  .demo-badge.student {
+    color: #059669;
+    border-color: #059669;
+    background: rgba(5,150,105,0.04);
+  }
+  .demo-badge.student:hover { background: #059669; color: #fff; }
+  
+  .hint-text {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 11px;
+    color: #CBD5E1;
+    font-weight: 500;
+  }
+  
+  /* Footer */
+  .login-footer {
+    text-align: center;
+    padding: 16px;
+    background: #FAFBFC;
+    border-top: 1px solid #F1F5F9;
+    font-size: 11px;
+    color: #94A3B8;
+    font-weight: 500;
+  }
+  
+  /* Responsive */
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    .login-card { border-radius: var(--radius); }
+    .college-header { padding: 22px 18px 20px; }
+    .college-header .name { font-size: 18px; }
+    .login-body { padding: 24px 20px 20px; }
+    .role-options { gap: 6px; }
+    .role-btn { font-size: 12px; padding: 10px 6px; }
+    .demo-badges { justify-content: center; }
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+<div class="login-card">
+  <!-- College Header -->
+  <div class="college-header">
+    <div class="logos">
+      <div class="logo-wrap">
+        <img src="{{ url_for('static', filename='logo_emblem.png') }}" alt="Emblem" onerror="this.style.display='none'; this.parentElement.nextElementSibling.style.display='flex'">
+      </div>
+      <div class="logo-fallback">SST</div>
+      <div class="logo-wrap">
+        <img src="{{ url_for('static', filename='logo_nandi.png') }}" alt="Nandi" onerror="this.style.display='none'; this.parentElement.nextElementSibling.style.display='flex'">
+      </div>
+      <div class="logo-fallback">SND</div>
+    </div>
+    <div class="trust">S. N. Tegnoor Educational Trust's</div>
+    <div class="name">S S Tegnoor<br>Degree College</div>
+    <div class="affil">Approved by Govt. of Karnataka &bull; Affiliated to Gulbarga University</div>
+    <div class="portal-tag">Student & Staff Management Portal</div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="login-body">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-login alert-{{ cat }}">
+          <i class="bi bi-{% if cat=='danger' %}exclamation-circle-fill{% elif cat=='warning' %}exclamation-triangle-fill{% else %}check-circle-fill{% endif %}"></i>
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" id="loginForm">
+      <!-- Role selector -->
+      <div class="role-selector">
+        <label class="role-label">Login as</label>
+        <div class="role-options">
+          <button type="button" class="role-btn active" id="btn-admin" onclick="setRole('admin')">
+            <i class="bi bi-person-badge"></i> Staff / Admin
+          </button>
+          <button type="button" class="role-btn" id="btn-student" onclick="setRole('student')">
+            <i class="bi bi-mortarboard"></i> Student
+          </button>
+        </div>
+        <input type="hidden" name="role" id="role-input" value="admin">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <div class="input-wrap">
+          <i class="bi bi-person"></i>
+          <input type="text" name="username" class="form-control-custom" placeholder="Enter your username" required autofocus autocomplete="username">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <i class="bi bi-lock"></i>
+          <input type="password" name="password" class="form-control-custom" id="passwordInput" placeholder="Enter your password" required autocomplete="current-password">
+          <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
+            <i class="bi bi-eye" id="toggleIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <i class="bi bi-box-arrow-in-right"></i>
+        <span>Sign In to Portal</span>
+      </button>
+    </form>
+
+    <!-- Quick demo -->
+    <div class="demo-section">
+      <div class="demo-label">Quick Demo Access</div>
+      <div class="demo-badges">
+        <a class="demo-badge admin" onclick="fillDemo('admin','admin123','admin')">
+          <i class="bi bi-person-badge"></i> Admin Demo
+        </a>
+        <a class="demo-badge student" onclick="fillDemo('bca1001','student123','student')">
+          <i class="bi bi-mortarboard"></i> Student Demo
+        </a>
+      </div>
+      <div class="hint-text">admin / admin123 &nbsp;&bull;&nbsp; Students: bca1001 / student123 (roll number lowercase)</div>
+    </div>
+  </div>
+  
+  <div class="login-footer">
+    &copy; S S Tegnoor Degree College &bull; All Rights Reserved
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function setRole(role){
+  document.getElementById('role-input').value = role;
+  document.getElementById('btn-admin').classList.toggle('active', role==='admin');
+  document.getElementById('btn-student').classList.toggle('active', role==='student');
+}
+
+function fillDemo(user, pass, role){
+  document.querySelector('[name=username]').value = user;
+  document.querySelector('[name=password]').value = pass;
+  setRole(role);
+  document.getElementById('loginForm').submit();
+}
+
+function togglePassword(){
+  const input = document.getElementById('passwordInput');
+  const icon = document.getElementById('toggleIcon');
+  if(input.type === 'password'){
+    input.type = 'text';
+    icon.classList.replace('bi-eye', 'bi-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.replace('bi-eye-slash', 'bi-eye');
+  }
+}
+
+// Loading state on submit
+document.getElementById('loginForm').addEventListener('submit', function(){
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
+});
+</script>
+</body>
+</html>

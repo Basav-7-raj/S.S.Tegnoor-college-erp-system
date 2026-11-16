@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Courses & Sections{% endblock %}
+{% block page_title %}Courses & Sections Management{% endblock %}
+{% block content %}
+
+<!-- Courses Overview -->
+<div class="row g-3 mb-4">
+  {% for c in courses %}
+  <div class="col-md-4 animate-fade-in" style="animation-delay: {{ loop.index * 0.05 }}s;">
+    <div class="card-modern">
+      <div class="card-body-modern text-center py-4">
+        <div style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, var(--maroon), var(--maroon-light)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; font-weight:700; margin:0 auto 12px;">
+          {{ c.name[:2] }}
+        </div>
+        <h5 style="font-weight:700; color:var(--text-primary);">{{ c.name }}</h5>
+        <p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">{{ c.full_name }}</p>
+        <div style="font-size:12px; color:var(--text-muted); font-weight:500;">{{ c.total_sems }} Semesters · Sections: {{ c.sections }}</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">{{ c.description or '' }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Add Section -->
+<div class="card-modern mb-4 animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-plus-circle"></i>Add New Section</h5>
+  </div>
+  <div class="card-body-modern">
+    <form method="POST" action="{{ url_for('admin_add_section') }}">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label-modern">Section Name</label>
+          <input class="form-control-modern" name="name" placeholder="e.g. A" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Course</label>
+          <select class="form-control-modern" name="course" required style="padding-left:10px;">
+            <option value="">Select</option>
+            <option>BCA</option>
+            <option>BSC</option>
+            <option>BCOM</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Capacity</label>
+          <input class="form-control-modern" name="capacity" type="number" value="60" min="1">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label-modern">Room No</label>
+          <input class="form-control-modern" name="room_no" placeholder="e.g. 101">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label-modern">Incharge Teacher</label>
+          <select class="form-control-modern" name="incharge" style="padding-left:10px;">
+            <option value="">Select Teacher</option>
+            {% for t in teachers %}
+            <option value="{{ t.id }}">{{ t.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-maroon"><i class="bi bi-plus-circle me-1"></i>Add</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Sections List -->
+<div class="card-modern animate-fade-in">
+  <div class="card-header-modern">
+    <h5><i class="bi bi-grid-3x3"></i>All Sections</h5>
+  </div>
+  <div class="p-0">
+    <div class="table-responsive">
+      <table class="table-modern table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Section</th>
+            <th>Course</th>
+            <th>Capacity</th>
+            <th>Room</th>
+            <th>Incharge</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sections %}
+          <tr>
+            <td style="color:var(--text-muted); font-weight:500;">{{ loop.index }}</td>
+            <td style="font-weight:700;"><span class="badge-modern badge-section">{{ s.name }}</span></td>
+            <td><span class="badge-modern badge-course">{{ s.course }}</span></td>
+            <td>{{ s.capacity }}</td>
+            <td>{{ s.room_no or '—' }}</td>
+            <td>{{ s.incharge_name or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <i class="bi bi-grid"></i>
+                <p>No sections added yet.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

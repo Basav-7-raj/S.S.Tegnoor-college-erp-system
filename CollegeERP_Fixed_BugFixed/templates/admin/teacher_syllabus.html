@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Syllabus View{% endblock %}
+{% block page_title %}Course Syllabus — {{ course }}{% endblock %}
+{% block content %}
+
+<!-- Course Tabs -->
+<div class="d-flex gap-2 mb-4 animate-fade-in">
+  {% for c in courses %}
+  <a href="?course={{ c }}" class="btn btn-sm {% if course==c %}btn-maroon{% else %}btn-outline-secondary{% endif %}">{{ c }}</a>
+  {% endfor %}
+</div>
+
+{% for sem in range(1,7) %}
+<div class="card-modern mb-3 animate-fade-in" style="animation-delay: {{ sem * 0.05 }}s;">
+  <div class="card-header-modern">
+    <h5>
+      <i class="bi bi-journal-bookmark"></i>Semester {{ sem }}
+    </h5>
+    <span class="badge-modern badge-sem">{{ subj_by_sem.get(sem,[])|length }} subjects</span>
+  </div>
+  <div class="card-body-modern">
+    <!-- Subjects Grid -->
+    <div class="row g-2 mb-3">
+      {% for s in subj_by_sem.get(sem,[]) %}
+      <div class="col-md-4 col-lg-3">
+        <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--bg-hover); border:1px solid var(--border);">
+          <i class="bi bi-book" style="color:var(--maroon); font-size:14px;"></i>
+          <span style="font-size:13px; font-weight:600; color:var(--text-primary);">{{ s }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Syllabus PDFs -->
+    {% if by_sem.get(sem) %}
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em;">Syllabus PDFs:</span>
+      <div class="d-flex gap-2 flex-wrap mt-2">
+        {% for f in by_sem[sem] %}
+          {% if f.file_path %}
+          <a href="{{ url_for('static',filename=f.file_path) }}" class="btn btn-sm btn-outline-maroon" target="_blank">
+            <i class="bi bi-file-earmark-pdf me-1"></i>{{ f.title }}
+          </a>
+          {% else %}
+          <span class="btn btn-sm btn-outline-secondary disabled" style="opacity:0.6; cursor:not-allowed;">
+            <i class="bi bi-file-earmark-pdf me-1"></i>{{ f.title }} (No PDF)
+          </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div style="border-top:1px solid var(--border); padding-top:12px;">
+      <p style="color:var(--text-muted); font-size:13px; font-weight:500; margin:0;">
+        <i class="bi bi-info-circle me-1"></i>No PDF uploaded yet for this semester.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
